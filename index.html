@@ -30,6 +30,21 @@
     <canvas id="original2" style="width:512px;height:512px; padding:10px;" crossorigin="anonymous" ></canvas>
     
   </div>
+	
+	
+<p>Quitar el fondo con Inteligencia Artificial.</p>
+  <div class="lds-grid--hidden" id="spinner" style="padding-top:20px; padding-bottom:20px;"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+  <div style=" display: flex;justify-content: center; padding-top:20px; padding-bottom:20px;" id = "boton2">
+    
+    <button class="btn draw-border"   value="Upload" onclick="run2();">
+      Procesar imagen
+    </button>
+	
+  </div>
+  <div class="row">
+    
+    <canvas id="original20" style="width:512px;height:512px; padding:10px;" crossorigin="anonymous" ></canvas>  
+  </div>
 </body>
 <script>
 
@@ -55,6 +70,7 @@ img0.onload = function(){
 };
 
   const MODEL_URL = 'output/model.json';
+  const MODEL_URL2 = 'output4/model.json';
   
   function thisFileUpload() {
     document.getElementById("file").click(); 
@@ -147,6 +163,53 @@ img0.onload = function(){
     }
   };
   
+	async function run2(){
+    model = await tf.loadGraphModel(MODEL_URL2); 
+    console.log('Succesfully loaded model');
+    console.log(model)
+    var image = null;
+    var result = null;
+    var newimage = null;
+    if(model != null & file != null){
+      image = document.getElementById("original2")
+      console.log("Running");
+      // Execute
+      file = tf.browser.fromPixels(image)
+      console.log(file.shape)
+      // Reshape
+      file = file.reshape([1 ,512, 512, 3])
+      // Cast to float32
+      //file = tf.cast(file,'float32')
+      file = file.asType('float32')
+      file= file.div(127.5)
+      file = file.sub(1)
+      // Predict
+      console.log("Let's predict")
+      result= model.predict(file)
+      console.log("Done")
+      result = result.reshape([512,512,3])
+      
+      console.log(result);
+      const b = tf.scalar(0.5);
+      result = result.mul(b);
+      result = result.add(0.5);
+      
+      
+      //Make spinner disappear and button appear again
+      spinner = document.getElementById("spinner");
+      spinner.className="lds-grid--hidden";
+      button = document.getElementById("boton");
+      button.style.visibility="visible";
+      button.style.display="flex";
+      
+      // Refresh images 
+      canvas_result = document.getElementById("original20");
+      prova = tf.browser.toPixels(result, canvas_result)
+    } else {
+      alert("Something went wrong :(")
+    }
+  };
+
 
 </script>
 </html>
